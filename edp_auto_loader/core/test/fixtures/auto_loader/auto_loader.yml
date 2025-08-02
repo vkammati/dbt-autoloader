@@ -1,0 +1,6 @@
+auto_loader:
+  delta_table_properties:
+    minReaderVersion: 2
+    minWriterVersion: 5
+    columnMapping.mode: name
+    enableChangeDataFeed: true

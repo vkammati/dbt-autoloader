@@ -1,0 +1,124 @@
+sources:
+  - name: AECORSOFT_INIT
+    root_source: aecorsoft
+    source_table_folder_prefixes:
+      dev: GSAP_ECC_C94
+      tst: GSAP_ECC_C94
+    full_load: false
+    enabled: true
+    read_options:
+      cloudFiles.format: parquet
+      cloudFiles.includeExistingFiles: true
+    tables:
+      - source_table_folder: GLPCA
+        confidentiality: confidential
+        alt_target_table_name: AECORSOFT_GLPCA
+        vacuum:
+          enabled: true
+          retention_hours: 170
+          retention_check: true
+        compaction: true
+        use_external_table: true
+
+      - source_table_folder: DS1HM_MT_BB
+        confidentiality: confidential
+        alt_target_table_name: AECORSOFT_DS1HM_MT_BB
+        use_external_table: true
+
+  - name: AECORSOFT_DELTA
+    root_source: aecorsoft
+    source_table_folder_prefixes:
+      dev: GSAP_ECC_C94
+      tst: GSAP_ECC_C94
+    full_load: false
+    enabled: true
+    read_options:
+      cloudFiles.format: parquet
+      cloudFiles.includeExistingFiles: true
+    tables:
+      - source_table_folder: OIJNOMH/OIJNOMH_DELTA
+        confidentiality: confidential
+        vacuum:
+          enabled: true
+          retention_hours: 24
+          retention_check: false
+        compaction: true
+        alt_target_table_name: AECORSOFT_OIJNOMH
+        use_external_table: true
+
+      - source_table_folder: EKKO/EKKO_DELTA
+        confidentiality: confidential
+        vacuum:
+          enabled: true
+          retention_hours: 24
+          retention_check: false
+        compaction: true
+        alt_target_table_name: AECORSOFT_EKKO
+        use_external_table: true
+
+
+      - source_table_folder: VBAP/VBAP_DELTA
+        confidentiality: confidential
+        alt_target_table_name: AECORSOFT_VBAP
+        use_external_table: true
+        cast_columns:
+          columns:
+            - column_name: "ingested_at"
+              data_type: "timestamp"
+
+            - column_name: "NETWR"
+              data_type: "decimal(15,2)"
+
+            - column_name: "KWMENG"
+              data_type: "decimal(15,3)"
+
+
+            - column_name: "UMZIN"
+              data_type: "decimal(5,0)"
+
+            - column_name: "ABLFZ"
+              data_type: "decimal(13,3)"
+
+            - column_name: "UEBTO"
+              data_type: "decimal(3,1)"
+
+            - column_name: "ZMENG"
+              data_type: "decimal(13,3)"
+
+            - column_name: "UNTTO"
+              data_type: "decimal(3,1)"
+
+            - column_name: "ABSFZ"
+              data_type: "decimal(13,3)"
+
+            - column_name: "UMVKZ"
+              data_type: "decimal(5,0)"
+
+            - column_name: "CMPRE_FLT"
+              data_type: "double"
+
+      - source_table_folder: VBAK/VBAK_DELTA
+        confidentiality: confidential
+        alt_target_table_name: AECORSOFT_VBAK
+        use_external_table: true
+
+  - name: CLUSTER_DELTA
+    root_source: aecorsoft
+    source_table_folder_prefixes:
+      dev: GSAP_ECC_C94
+      tst: GSAP_ECC_C94
+    full_load: false
+    enabled: true
+    read_options:
+      cloudFiles.format: parquet
+      cloudFiles.includeExistingFiles: true
+    tables:
+      - source_table_folder: BSEG
+        confidentiality: confidential
+        vacuum:
+          enabled: true
+          retention_hours: 24
+          retention_check: false
+        compaction: true
+        alt_target_table_name: AECORSOFT_BSEG
+        use_external_table: true

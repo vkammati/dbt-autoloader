@@ -1,0 +1,1040 @@
+auto_loader:
+  delta_table_properties:
+    minReaderVersion: 2
+    minWriterVersion: 5
+    columnMapping.mode: name
+    enableChangeDataFeed: true
+
+  sources:
+    - name: BW_TRANSACTIONAL
+      root_source: adf
+      source_table_folder_prefixes:
+        dev: DS_GSAP_BW
+        tst: DS_GSAP_BW
+      enabled: true
+      read_options:
+        cloudFiles.format: parquet
+        cloudFiles.includeExistingFiles: true
+      tables:
+        - source_table_folder: ZOH_COGDP
+          confidentiality: confidential
+          full_load: false
+          alt_target_table_name: ZOH_COGDP
+          use_external_table: true
+
+        - source_table_folder: ZOH_COLDP
+          confidentiality: confidential
+          full_load: false
+          alt_target_table_name: ZOH_COLDP
+          use_external_table: true
+
+    - name: BW_MASTER_DATA
+      root_source: adf
+      source_table_folder_prefixes:
+        dev: DS_GSAP_BW
+        tst: DS_GSAP_BW
+      enabled: true
+      read_options:
+        cloudFiles.format: parquet
+        cloudFiles.includeExistingFiles: true
+      tables:
+        - source_table_folder: ZOH_AGRDP/ZOH_AGRDP_DELTA
+          confidentiality: internal
+          full_load: true
+          alt_target_table_name: ZOH_AGRDP
+          use_external_table: true
+
+        - source_table_folder: ZOH_CMRDP/ZOH_CMRDP_DELTA
+          confidentiality: confidential
+          full_load: true
+          alt_target_table_name: ZOH_CMRDP
+          use_external_table: true
+
+    - name: HANA_INIT_AND_DELTA
+      root_source: adf
+      source_table_folder_prefixes:
+        dev: DS_HANA_DDD
+        tst: DS_HANA_CDD
+      full_load: false
+      enabled: true
+      read_options:
+        cloudFiles.format: parquet
+        cloudFiles.includeExistingFiles: true
+      tables:
+        - source_table_folder: BKPF_STN
+          confidentiality: confidential
+          vacuum:
+            enabled: true
+            retention_hours: 192
+            retention_check: true
+          alt_target_table_name: BKPF_STN
+          cast_columns:
+            columns:
+              - column_name: "ingested_at"
+                data_type: "timestamp"
+
+              - column_name: "KURSF"
+                data_type: "int"
+
+              - column_name: "KZKRS"
+                data_type: "decimal(9,5)"
+
+              - column_name: FRATH
+                data_type: 'decimal(13,2)'
+
+              - column_name: KURS2
+                data_type: 'decimal(9,5)'
+
+              - column_name: KURS3
+                data_type: 'decimal(9,5)'
+
+              - column_name: TXKRS
+                data_type: 'decimal(9,5)'
+
+              - column_name: KURSX
+                data_type: 'decimal(28,14)'
+
+              - column_name: KUR2X
+                data_type: 'decimal(28,14)'
+
+              - column_name: KUR3X
+                data_type: 'decimal(28,14)'
+
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+              - column_name: CTXKRS
+                data_type: 'decimal(9,5)'
+
+              - column_name: KURSF
+                data_type: 'decimal(9,5)'
+
+              - column_name: KZKRS
+                data_type: 'decimal(9,5)'
+
+              - column_name: FRATH
+                data_type: 'decimal(13,2)'
+
+              - column_name: KURS2
+                data_type: 'decimal(9,5)'
+
+              - column_name: KURS3
+                data_type: 'decimal(9,5)'
+
+              - column_name: TXKRS
+                data_type: 'decimal(9,5)'
+
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+              - column_name: CTXKRS
+                data_type: 'decimal(9,5)'
+
+              - column_name: KURSX
+                data_type: 'decimal(28,14)'
+
+              - column_name: KUR2X
+                data_type: 'decimal(28,14)'
+
+              - column_name: KUR3X
+                data_type: 'decimal(28,14)'
+
+
+        - source_table_folder: BKPF_TSAP
+          confidentiality: confidential
+          vacuum:
+            enabled: true
+            retention_hours: 192
+            retention_check: true
+          compaction: true
+          alt_target_table_name: BKPF_TSAP
+          cast_columns:
+            columns:
+              - column_name: KURSF
+                data_type: 'decimal(9,5)'
+
+              - column_name: KZKRS
+                data_type: 'decimal(9,5)'
+
+              - column_name: FRATH
+                data_type: 'decimal(13,2)'
+
+              - column_name: KURS2
+                data_type: 'decimal(9,5)'
+
+              - column_name: KURS3
+                data_type: 'decimal(9,5)'
+
+              - column_name: TXKRS
+                data_type: 'decimal(9,5)'
+
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+              - column_name: CTXKRS
+                data_type: 'decimal(9,5)'
+
+              - column_name: KURSX
+                data_type: 'decimal(28,14)'
+
+              - column_name: KUR2X
+                data_type: 'decimal(28,14)'
+
+              - column_name: KUR3X
+                data_type: 'decimal(28,14)'
+
+
+        - source_table_folder: BSEG_STN
+          confidentiality: confidential
+          vacuum:
+            enabled: true
+            retention_hours: 24
+            retention_check: false
+          compaction: true
+          alt_target_table_name: BSEG_STN
+          cast_columns:
+            columns:
+              - column_name: DMBTR
+                data_type: 'decimal(13,2)'
+              - column_name: WRBTR
+                data_type: 'decimal(13,2)'
+              - column_name: KZBTR
+                data_type: 'decimal(13,2)'
+              - column_name: PSWBT
+                data_type: 'decimal(13,2)'
+              - column_name: TXBHW
+                data_type: 'decimal(13,2)'
+              - column_name: TXBFW
+                data_type: 'decimal(13,2)'
+              - column_name: MWSTS
+                data_type: 'decimal(13,2)'
+              - column_name: WMWST
+                data_type: 'decimal(13,2)'
+              - column_name: HWBAS
+                data_type: 'decimal(13,2)'
+              - column_name: FWBAS
+                data_type: 'decimal(13,2)'
+              - column_name: HWZUZ
+                data_type: 'decimal(13,2)'
+              - column_name: FWZUZ
+                data_type: 'decimal(13,2)'
+              - column_name: QSSHB
+                data_type: 'decimal(13,2)'
+              - column_name: KURSR
+                data_type: 'decimal(9,5)'
+              - column_name: GBETR
+                data_type: 'decimal(13,2)'
+              - column_name: BDIFF
+                data_type: 'decimal(13,2)'
+              - column_name: BDIF2
+                data_type: 'decimal(13,2)'
+              - column_name: FDWBT
+                data_type: 'decimal(13,2)'
+              - column_name: ZBD1T
+                data_type: 'decimal(3,0)'
+              - column_name: ZBD2T
+                data_type: 'decimal(3,0)'
+              - column_name: ZBD3T
+                data_type: 'decimal(3,0)'
+              - column_name: ZBD1P
+                data_type: 'decimal(5,3)'
+              - column_name: ZBD2P
+                data_type: 'decimal(5,3)'
+              - column_name: SKFBT
+                data_type: 'decimal(13,2)'
+              - column_name: SKNTO
+                data_type: 'decimal(13,2)'
+              - column_name: WSKTO
+                data_type: 'decimal(13,2)'
+              - column_name: NEBTR
+                data_type: 'decimal(13,2)'
+              - column_name: DMBT1
+                data_type: 'decimal(13,2)'
+              - column_name: WRBT1
+                data_type: 'decimal(13,2)'
+              - column_name: DMBT2
+                data_type: 'decimal(13,2)'
+              - column_name: WRBT2
+                data_type: 'decimal(13,2)'
+              - column_name: DMBT3
+                data_type: 'decimal(13,2)'
+              - column_name: WRBT3
+                data_type: 'decimal(13,2)'
+              - column_name: BLNBT
+                data_type: 'decimal(13,2)'
+              - column_name: BLNPZ
+                data_type: 'decimal(7,2)'
+              - column_name: KLIBT
+                data_type: 'decimal(13,2)'
+              - column_name: QBSHB
+                data_type: 'decimal(13,2)'
+              - column_name: QSFBT
+                data_type: 'decimal(13,2)'
+              - column_name: NAVHW
+                data_type: 'decimal(13,2)'
+              - column_name: NAVFW
+                data_type: 'decimal(13,2)'
+              - column_name: MENGE
+                data_type: 'decimal(13,3)'
+              - column_name: ERFMG
+                data_type: 'decimal(13,3)'
+              - column_name: BPMNG
+                data_type: 'decimal(13,3)'
+              - column_name: PEINH
+                data_type: 'decimal(5,0)'
+              - column_name: REWRT
+                data_type: 'decimal(13,2)'
+              - column_name: REWWR
+                data_type: 'decimal(13,2)'
+              - column_name: BONFB
+                data_type: 'decimal(13,2)'
+              - column_name: BUALT
+                data_type: 'decimal(13,2)'
+              - column_name: NPREI
+                data_type: 'decimal(11,2)'
+              - column_name: RDIFF
+                data_type: 'decimal(13,2)'
+              - column_name: RDIF2
+                data_type: 'decimal(13,2)'
+              - column_name: POPTS
+                data_type: 'decimal(9,6)'
+              - column_name: DMBE2
+                data_type: 'decimal(13,2)'
+              - column_name: DMBE3
+                data_type: 'decimal(13,2)'
+              - column_name: DMB21
+                data_type: 'decimal(13,2)'
+              - column_name: DMB22
+                data_type: 'decimal(13,2)'
+              - column_name: DMB23
+                data_type: 'decimal(13,2)'
+              - column_name: DMB31
+                data_type: 'decimal(13,2)'
+              - column_name: DMB32
+                data_type: 'decimal(13,2)'
+              - column_name: DMB33
+                data_type: 'decimal(13,2)'
+              - column_name: MWST2
+                data_type: 'decimal(13,2)'
+              - column_name: MWST3
+                data_type: 'decimal(13,2)'
+              - column_name: NAVH2
+                data_type: 'decimal(13,2)'
+              - column_name: NAVH3
+                data_type: 'decimal(13,2)'
+              - column_name: SKNT2
+                data_type: 'decimal(13,2)'
+              - column_name: SKNT3
+                data_type: 'decimal(13,2)'
+              - column_name: BDIF3
+                data_type: 'decimal(13,2)'
+              - column_name: RDIF3
+                data_type: 'decimal(13,2)'
+              - column_name: TXBH2
+                data_type: 'decimal(13,2)'
+              - column_name: TXBH3
+                data_type: 'decimal(13,2)'
+              - column_name: STTAX
+                data_type: 'decimal(13,2)'
+              - column_name: ABSBT
+                data_type: 'decimal(13,2)'
+              - column_name: AGZEI
+                data_type: 'decimal(5,0)'
+              - column_name: PYAMT
+                data_type: 'decimal(13,2)'
+              - column_name: PPDIFF
+                data_type: 'decimal(13,2)'
+              - column_name: PPDIF2
+                data_type: 'decimal(13,2)'
+              - column_name: PPDIF3
+                data_type: 'decimal(13,2)'
+              - column_name: PENLC1
+                data_type: 'decimal(13,2)'
+              - column_name: PENLC2
+                data_type: 'decimal(13,2)'
+              - column_name: PENLC3
+                data_type: 'decimal(13,2)'
+              - column_name: PENFC
+                data_type: 'decimal(13,2)'
+              - column_name: PENDAYS
+                data_type: int
+              - column_name: SCTAX
+                data_type: 'decimal(13,2)'
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+        - source_table_folder: BSEG_TSAP
+          confidentiality: confidential
+          vacuum:
+            enabled: true
+            retention_hours: 24
+          compaction: false
+          alt_target_table_name: BSEG_TSAP
+          cast_columns:
+            columns:
+              - column_name: DMBTR
+                data_type: 'decimal(13,2)'
+              - column_name: WRBTR
+                data_type: 'decimal(13,2)'
+              - column_name: KZBTR
+                data_type: 'decimal(13,2)'
+              - column_name: PSWBT
+                data_type: 'decimal(13,2)'
+              - column_name: TXBHW
+                data_type: 'decimal(13,2)'
+              - column_name: TXBFW
+                data_type: 'decimal(13,2)'
+              - column_name: MWSTS
+                data_type: 'decimal(13,2)'
+              - column_name: WMWST
+                data_type: 'decimal(13,2)'
+              - column_name: HWBAS
+                data_type: 'decimal(13,2)'
+              - column_name: FWBAS
+                data_type: 'decimal(13,2)'
+              - column_name: HWZUZ
+                data_type: 'decimal(13,2)'
+              - column_name: FWZUZ
+                data_type: 'decimal(13,2)'
+              - column_name: QSSHB
+                data_type: 'decimal(13,2)'
+              - column_name: KURSR
+                data_type: 'decimal(9,5)'
+              - column_name: GBETR
+                data_type: 'decimal(13,2)'
+              - column_name: BDIFF
+                data_type: 'decimal(13,2)'
+              - column_name: BDIF2
+                data_type: 'decimal(13,2)'
+              - column_name: FDWBT
+                data_type: 'decimal(13,2)'
+              - column_name: ZBD1T
+                data_type: 'decimal(3,0)'
+              - column_name: ZBD2T
+                data_type: 'decimal(3,0)'
+              - column_name: ZBD3T
+                data_type: 'decimal(3,0)'
+              - column_name: ZBD1P
+                data_type: 'decimal(5,3)'
+              - column_name: ZBD2P
+                data_type: 'decimal(5,3)'
+              - column_name: SKFBT
+                data_type: 'decimal(13,2)'
+              - column_name: SKNTO
+                data_type: 'decimal(13,2)'
+              - column_name: WSKTO
+                data_type: 'decimal(13,2)'
+              - column_name: NEBTR
+                data_type: 'decimal(13,2)'
+              - column_name: DMBT1
+                data_type: 'decimal(13,2)'
+              - column_name: WRBT1
+                data_type: 'decimal(13,2)'
+              - column_name: DMBT2
+                data_type: 'decimal(13,2)'
+              - column_name: WRBT2
+                data_type: 'decimal(13,2)'
+              - column_name: DMBT3
+                data_type: 'decimal(13,2)'
+              - column_name: WRBT3
+                data_type: 'decimal(13,2)'
+              - column_name: BLNBT
+                data_type: 'decimal(13,2)'
+              - column_name: BLNPZ
+                data_type: 'decimal(7,2)'
+              - column_name: KLIBT
+                data_type: 'decimal(13,2)'
+              - column_name: QBSHB
+                data_type: 'decimal(13,2)'
+              - column_name: QSFBT
+                data_type: 'decimal(13,2)'
+              - column_name: NAVHW
+                data_type: 'decimal(13,2)'
+              - column_name: NAVFW
+                data_type: 'decimal(13,2)'
+              - column_name: MENGE
+                data_type: 'decimal(13,3)'
+              - column_name: ERFMG
+                data_type: 'decimal(13,3)'
+              - column_name: BPMNG
+                data_type: 'decimal(13,3)'
+              - column_name: PEINH
+                data_type: 'decimal(5,0)'
+              - column_name: REWRT
+                data_type: 'decimal(13,2)'
+              - column_name: REWWR
+                data_type: 'decimal(13,2)'
+              - column_name: BONFB
+                data_type: 'decimal(13,2)'
+              - column_name: BUALT
+                data_type: 'decimal(13,2)'
+              - column_name: NPREI
+                data_type: 'decimal(11,2)'
+              - column_name: RDIFF
+                data_type: 'decimal(13,2)'
+              - column_name: RDIF2
+                data_type: 'decimal(13,2)'
+              - column_name: POPTS
+                data_type: 'decimal(9,6)'
+              - column_name: DMBE2
+                data_type: 'decimal(13,2)'
+              - column_name: DMBE3
+                data_type: 'decimal(13,2)'
+              - column_name: DMB21
+                data_type: 'decimal(13,2)'
+              - column_name: DMB22
+                data_type: 'decimal(13,2)'
+              - column_name: DMB23
+                data_type: 'decimal(13,2)'
+              - column_name: DMB31
+                data_type: 'decimal(13,2)'
+              - column_name: DMB32
+                data_type: 'decimal(13,2)'
+              - column_name: DMB33
+                data_type: 'decimal(13,2)'
+              - column_name: MWST2
+                data_type: 'decimal(13,2)'
+              - column_name: MWST3
+                data_type: 'decimal(13,2)'
+              - column_name: NAVH2
+                data_type: 'decimal(13,2)'
+              - column_name: NAVH3
+                data_type: 'decimal(13,2)'
+              - column_name: SKNT2
+                data_type: 'decimal(13,2)'
+              - column_name: SKNT3
+                data_type: 'decimal(13,2)'
+              - column_name: BDIF3
+                data_type: 'decimal(13,2)'
+              - column_name: RDIF3
+                data_type: 'decimal(13,2)'
+              - column_name: TXBH2
+                data_type: 'decimal(13,2)'
+              - column_name: TXBH3
+                data_type: 'decimal(13,2)'
+              - column_name: STTAX
+                data_type: 'decimal(13,2)'
+              - column_name: ABSBT
+                data_type: 'decimal(13,2)'
+              - column_name: AGZEI
+                data_type: 'decimal(5,0)'
+              - column_name: PYAMT
+                data_type: 'decimal(13,2)'
+              - column_name: PPDIFF
+                data_type: 'decimal(13,2)'
+              - column_name: PPDIF2
+                data_type: 'decimal(13,2)'
+              - column_name: PPDIF3
+                data_type: 'decimal(13,2)'
+              - column_name: PENLC1
+                data_type: 'decimal(13,2)'
+              - column_name: PENLC2
+                data_type: 'decimal(13,2)'
+              - column_name: PENLC3
+                data_type: 'decimal(13,2)'
+              - column_name: PENFC
+                data_type: 'decimal(13,2)'
+              - column_name: PENDAYS
+                data_type: int
+              - column_name: SCTAX
+                data_type: 'decimal(13,2)'
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+
+        - source_table_folder: KNA1_STN
+          confidentiality: confidential
+          vacuum:
+            enabled: false
+            retention_hours: 24
+          compaction: false
+          alt_target_table_name: KNA1_STN
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+              - column_name: UMSAT
+                data_type: 'decimal(8,2)'
+              - column_name: UMSA1
+                data_type: 'decimal(15,2)'
+
+        - source_table_folder: KNA1_TSAP
+          confidentiality: confidential
+          alt_target_table_name: KNA1_TSAP
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+              - column_name: UMSAT
+                data_type: 'decimal(8,2)'
+              - column_name: UMSA1
+                data_type: 'decimal(15,2)'
+
+        - source_table_folder: KNB1_STN
+          confidentiality: confidential
+          alt_target_table_name: KNB1_STN
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+              - column_name: VLIBB
+                data_type: 'decimal(13,2)'
+              - column_name: VRSZL
+                data_type: 'decimal(3,0)'
+              - column_name: VRSPR
+                data_type: 'decimal(3,0)'
+              - column_name: WEBTR
+                data_type: 'decimal(13,2)'
+              - column_name: KULTG
+                data_type: 'decimal(3,0)'
+
+        - source_table_folder: KNB1_TSAP
+          confidentiality: confidential
+          alt_target_table_name: KNB1_TSAP
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+              - column_name: VLIBB
+                data_type: 'decimal(13,2)'
+              - column_name: VRSZL
+                data_type: 'decimal(3,0)'
+              - column_name: VRSPR
+                data_type: 'decimal(3,0)'
+              - column_name: WEBTR
+                data_type: 'decimal(13,2)'
+              - column_name: KULTG
+                data_type: 'decimal(3,0)'
+
+        - source_table_folder: T001_STN
+          confidentiality: confidential
+          alt_target_table_name: T001_STN
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+        - source_table_folder: T001_TSAP
+          confidentiality: confidential
+          alt_target_table_name: T001_TSAP
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+        - source_table_folder: LFA1_STN
+          confidentiality: confidential
+          alt_target_table_name: LFA1_STN
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+              - column_name: STAGING_TIME
+                data_type: 'decimal(3,0)'
+              - column_name: J_SC_CAPITAL
+                data_type: 'decimal(15,2)'
+
+        - source_table_folder: LFA1_TSAP
+          confidentiality: confidential
+          alt_target_table_name: LFA1_TSAP
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+              - column_name: STAGING_TIME
+                data_type: 'decimal(3,0)'
+              - column_name: J_SC_CAPITAL
+                data_type: 'decimal(15,2)'
+
+        - source_table_folder: LFB1_STN
+          confidentiality: confidential
+          alt_target_table_name: LFB1_STN
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+              - column_name: WEBTR
+                data_type: 'decimal(13,2)'
+              - column_name: KULTG
+                data_type: 'decimal(3,0)'
+              - column_name: BASIS_PNT
+                data_type: 'decimal(6,3)'
+
+        - source_table_folder: LFB1_TSAP
+          confidentiality: confidential
+          alt_target_table_name: LFB1_TSAP
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+              - column_name: WEBTR
+                data_type: 'decimal(13,2)'
+              - column_name: KULTG
+                data_type: 'decimal(3,0)'
+              - column_name: BASIS_PNT
+                data_type: 'decimal(6,3)'
+
+        - source_table_folder: SKA1_STN
+          confidentiality: confidential
+          alt_target_table_name: SKA1_STN
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+        - source_table_folder: SKA1_TSAP
+          confidentiality: confidential
+          alt_target_table_name: SKA1_TSAP
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+
+        - source_table_folder: SKAT_TSAP
+          confidentiality: internal
+          alt_target_table_name: SKAT_TSAP
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+        - source_table_folder: SKAT_STN
+          confidentiality: internal
+          alt_target_table_name: SKAT_STN
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+        - source_table_folder: SKB1_TSAP
+          confidentiality: internal
+          alt_target_table_name: SKB1_TSAP
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+        - source_table_folder: SKB1_STN
+          confidentiality: internal
+          alt_target_table_name: SKB1_STN
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+
+        - source_table_folder: GLIDXA_TSAP
+          confidentiality: internal
+          alt_target_table_name: GLIDXA_TSAP
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+
+        - source_table_folder: GLIDXA_STN
+          confidentiality: internal
+          alt_target_table_name: GLIDXA_STN
+          cast_columns:
+            columns:
+              - column_name: LAST_DTM
+                data_type: 'decimal(15,0)'
+
+        - source_table_folder: ZSTVA_PE_MC_DTL_STN
+          confidentiality: internal
+          alt_target_table_name: ZSTVA_PE_MC_DTL_STN
+          cast_columns:
+            columns:
+                - column_name: QTY
+                  data_type: 'decimal(16,4)'
+                - column_name: UNIT_COST_VAL
+                  data_type: 'decimal(13,4)'
+                - column_name: USD_VALUE
+                  data_type: 'decimal(16,4)'
+                - column_name: USD_VALUE_ORIG
+                  data_type: 'decimal(16,4)'
+                - column_name: CURR_VALUE
+                  data_type: 'decimal(16,2)'
+                - column_name: CURR_VALUE_ORIG
+                  data_type: 'decimal(16,2)'
+                - column_name: TRD_LAST_CHANGED
+                  data_type: 'decimal(15,0)'
+                - column_name: BBL_VOL
+                  data_type: 'decimal(15,4)'
+                - column_name: MT_AMT
+                  data_type: 'decimal(15,4)'
+                - column_name: ALLOC_WGTN
+                  data_type: 'decimal(10,4)'
+                - column_name: STRIKE_PRC
+                  data_type: 'decimal(13,4)'
+                - column_name: PREMIUM
+                  data_type: 'decimal(16,4)'
+                - column_name: REC_LAST_CHANGED
+                  data_type: 'decimal(15,0)'
+                - column_name: FORMULA_VERSION
+                  data_type: int
+                - column_name: MT_EQUIV_AMT
+                  data_type: 'decimal(13,4)'
+                - column_name: BBL_EQUIV_VOL
+                  data_type: 'decimal(13,4)'
+                - column_name: NON_USD_VALUE
+                  data_type: 'decimal(17,4)'
+                - column_name: LAST_DTM
+                  data_type: 'decimal(15,0)'
+
+
+        - source_table_folder: ZSTVA_PE_DEX_DTL_STN
+          confidentiality: internal
+          alt_target_table_name: ZSTVA_PE_DEX_DTL_STN
+          cast_columns:
+            columns:
+                - column_name: QTY
+                  data_type: 'decimal(16,4)'
+                - column_name: UNIT_COST_VAL
+                  data_type: 'decimal(13,4)'
+                - column_name: USD_VALUE
+                  data_type: 'decimal(16,4)'
+                - column_name: USD_VALUE_ORIG
+                  data_type: 'decimal(16,4)'
+                - column_name: CURR_VALUE
+                  data_type: 'decimal(16,2)'
+                - column_name: CURR_VALUE_ORIG
+                  data_type: 'decimal(16,2)'
+                - column_name: TRD_LAST_CHANGED
+                  data_type: 'decimal(15,0)'
+                - column_name: BBL_VOL
+                  data_type: 'decimal(15,4)'
+                - column_name: MT_AMT
+                  data_type: 'decimal(15,4)'
+                - column_name: ALLOC_WGTN
+                  data_type: 'decimal(10,4)'
+                - column_name: STRIKE_PRC
+                  data_type: 'decimal(13,4)'
+                - column_name: PREMIUM
+                  data_type: 'decimal(16,4)'
+                - column_name: REC_LAST_CHANGED
+                  data_type: 'decimal(15,0)'
+                - column_name: FORMULA_VERSION
+                  data_type: int
+                - column_name: MT_EQUIV_AMT
+                  data_type: 'decimal(13,4)'
+                - column_name: BBL_EQUIV_VOL
+                  data_type: 'decimal(13,4)'
+                - column_name: NON_USD_VALUE
+                  data_type: 'decimal(17,4)'
+                - column_name: LAST_DTM
+                  data_type: 'decimal(15,0)'
+
+    - name: HANA_INIT
+      root_source: adf
+      source_table_folder_prefixes:
+        dev: DS_HANA_CDD
+        tst: DS_HANA_CDD
+      read_options:
+        cloudFiles.format: parquet
+        cloudFiles.includeExistingFiles: true
+      tables:
+        - source_table_folder: OIJNOMH/OIJNOMH_INIT
+          enabled: true
+          confidentiality: confidential
+          full_load: false
+          alt_target_table_name: OIJNOMH
+          use_external_table: true
+          cast_columns:
+            columns:
+              - column_name: "ingested_at"
+                data_type: "timestamp"
+
+              - column_name: "BOTOL"
+                data_type: "decimal(18,2)"
+
+        - source_table_folder: EKKO/EKKO_INIT
+          enabled: true
+          confidentiality: confidential
+          full_load: false
+          alt_target_table_name: EKKO
+          use_external_table: true
+
+
+        - source_table_folder: GLPCA/GLPCA_INIT
+          enabled: true
+          confidentiality: confidential
+          full_load: false
+          alt_target_table_name: GLPCA
+          use_external_table: true
+
+        - source_table_folder: DS1HM_MT_BB/DS1HM_MT_BB_INIT
+          enabled: true
+          confidentiality: confidential
+          full_load: false
+          alt_target_table_name: DS1HM_MT_BB
+          use_external_table: true
+
+        - source_table_folder: VBAP/VBAP_INIT
+          enabled: true
+          confidentiality: confidential
+          full_load: false
+          alt_target_table_name: VBAP
+          use_external_table: true
+          cast_columns:
+            columns:
+              - column_name: "ingested_at"
+                data_type: "timestamp"
+
+              - column_name: "NETWR"
+                data_type: "decimal(15,2)"
+
+              - column_name: "KWMENG"
+                data_type: "decimal(15,3)"
+
+              - column_name: "UMZIN"
+                data_type: "decimal(5,0)"
+
+              - column_name: "ABLFZ"
+                data_type: "decimal(13,3)"
+
+              - column_name: "UEBTO"
+                data_type: "decimal(3,1)"
+
+              - column_name: "ZMENG"
+                data_type: "decimal(13,3)"
+
+              - column_name: "UNTTO"
+                data_type: "decimal(3,1)"
+
+              - column_name: "ABSFZ"
+                data_type: "decimal(13,3)"
+
+              - column_name: "UMVKZ"
+                data_type: "decimal(5,0)"
+
+              - column_name: "CMPRE_FLT"
+                data_type: "double"
+
+
+        - source_table_folder: VBAK/VBAK_INIT
+          enabled: true
+          confidentiality: confidential
+          full_load: false
+          alt_target_table_name: VBAK
+          use_external_table: true
+
+    - name: CLUSTER_INIT
+      root_source: adf
+      source_table_folder_prefixes:
+        dev: DS_HANA_CDD
+        tst: DS_HANA_CDD
+      read_options:
+        cloudFiles.format: parquet
+        cloudFiles.includeExistingFiles: true
+      tables:
+        - source_table_folder: BSEG/BSEG_INIT
+          enabled: true
+          confidentiality: confidential
+          full_load: false
+          alt_target_table_name: BSEG
+          use_external_table: true
+
+
+    - name: AECORSOFT_INIT
+      root_source: aecorsoft
+      source_table_folder_prefixes:
+        dev: GSAP_ECC_C94
+        tst: GSAP_ECC_C94
+      full_load: false
+      enabled: true
+      read_options:
+        cloudFiles.format: parquet
+        cloudFiles.includeExistingFiles: true
+      tables:
+        - source_table_folder: GLPCA
+          confidentiality: confidential
+          alt_target_table_name: AECORSOFT_GLPCA
+          use_external_table: true
+
+        - source_table_folder: DS1HM_MT_BB
+          confidentiality: confidential
+          alt_target_table_name: AECORSOFT_DS1HM_MT_BB
+          use_external_table: true
+
+    - name: AECORSOFT_DELTA
+      root_source: aecorsoft
+      source_table_folder_prefixes:
+        dev: GSAP_ECC_C94
+        tst: GSAP_ECC_C94
+      full_load: false
+      enabled: true
+      read_options:
+        cloudFiles.format: parquet
+        cloudFiles.includeExistingFiles: true
+      tables:
+        - source_table_folder: OIJNOMH/OIJNOMH_DELTA
+          confidentiality: confidential
+          alt_target_table_name: AECORSOFT_OIJNOMH
+          use_external_table: true
+
+        - source_table_folder: EKKO/EKKO_DELTA
+          confidentiality: confidential
+          alt_target_table_name: AECORSOFT_EKKO
+          use_external_table: true
+
+        - source_table_folder: VBAP/VBAP_DELTA
+          confidentiality: confidential
+          alt_target_table_name: AECORSOFT_VBAP
+          use_external_table: true
+          cast_columns:
+            columns:
+              - column_name: "ingested_at"
+                data_type: "timestamp"
+
+              - column_name: "NETWR"
+                data_type: "decimal(15,2)"
+
+              - column_name: "KWMENG"
+                data_type: "decimal(15,3)"
+
+              - column_name: "UMZIN"
+                data_type: "decimal(5,0)"
+
+              - column_name: "ABLFZ"
+                data_type: "decimal(13,3)"
+
+              - column_name: "UEBTO"
+                data_type: "decimal(3,1)"
+
+              - column_name: "ZMENG"
+                data_type: "decimal(13,3)"
+
+              - column_name: "UNTTO"
+                data_type: "decimal(3,1)"
+
+              - column_name: "ABSFZ"
+                data_type: "decimal(13,3)"
+
+              - column_name: "UMVKZ"
+                data_type: "decimal(5,0)"
+
+              - column_name: "CMPRE_FLT"
+                data_type: "double"
+
+        - source_table_folder: VBAK/VBAK_DELTA
+          confidentiality: confidential
+          alt_target_table_name: AECORSOFT_VBAK
+          use_external_table: true
+
+    - name: CLUSTER_DELTA
+      root_source: aecorsoft
+      source_table_folder_prefixes:
+        dev: GSAP_ECC_C94
+        tst: GSAP_ECC_C94
+      full_load: false
+      enabled: true
+      read_options:
+        cloudFiles.format: parquet
+        cloudFiles.includeExistingFiles: true
+      tables:
+        - source_table_folder: BSEG
+          confidentiality: confidential
+          alt_target_table_name: AECORSOFT_BSEG
+          use_external_table: true

@@ -1,0 +1,54 @@
+sources:
+  - name: BW_TRANSACTIONAL
+    root_source: adf
+    vacuum:
+      enabled: true
+      retention_hours: 24
+      retention_check: false
+    compaction: true
+    source_table_folder_prefixes:
+      dev: DS_GSAP_BW
+      tst: DS_GSAP_BW
+    enabled: true
+    read_options:
+      cloudFiles.format: parquet
+      cloudFiles.includeExistingFiles: true
+    tables:
+      - source_table_folder: ZOH_COGDP
+        confidentiality: confidential
+        full_load: false
+        alt_target_table_name: ZOH_COGDP
+        use_external_table: true
+
+      - source_table_folder: ZOH_COLDP
+        confidentiality: confidential
+        full_load: false
+        alt_target_table_name: ZOH_COLDP
+        use_external_table: true
+
+  - name: BW_MASTER_DATA
+    root_source: adf
+    vacuum:
+      enabled: true
+      retention_hours: 24
+      retention_check: false
+    compaction: true
+    source_table_folder_prefixes:
+      dev: DS_GSAP_BW
+      tst: DS_GSAP_BW
+    enabled: true
+    read_options:
+      cloudFiles.format: parquet
+      cloudFiles.includeExistingFiles: true
+    tables:
+      - source_table_folder: ZOH_AGRDP/ZOH_AGRDP_DELTA
+        confidentiality: internal
+        full_load: true
+        alt_target_table_name: ZOH_AGRDP
+        use_external_table: true
+
+      - source_table_folder: ZOH_CMRDP/ZOH_CMRDP_DELTA
+        confidentiality: confidential
+        full_load: true
+        alt_target_table_name: ZOH_CMRDP
+        use_external_table: true
