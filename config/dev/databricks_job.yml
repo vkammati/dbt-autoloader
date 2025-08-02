@@ -1,0 +1,284 @@
+jobs:
+  - name: "Autoloader - HANA Data Loads - Init and Delta"
+    #run_as_service_principal_id: 48e0ccb9-dda3-44e8-b0ea-b96471b53ebf
+    max_concurrent_runs: 1
+    # email_notifications:
+    #   # Can also be set to notify "on_start", "on_success" or "on_duration_warning_threshold_exceeded"
+    #   on_failure:
+    #     - GX-SBOBNG-DLT-Team@shell.com
+    notification_settings:
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
+    schedule:
+      quartz_cron_expression: "23 15 10 * * ?"
+      timezone_id: "UTC"
+      pause_status: "PAUSED"
+    # Besides scheduling a job, it can also be set to run "continuously" or "triggered"
+    # on file arrival. For this, uncommented one of the options below.
+    #continuous:
+    #  pause_status: "PAUSED"
+    #trigger:
+    #  pause_status: "PAUSED"
+    #  file_arrival_url: "abfss://<container>@<storageaccount>.dfs.core.windows.net/path/to/monitor/"
+    #  file_arrival_min_time_between_triggers_seconds: 300
+    #  file_arrival_wait_after_last_change_seconds: 300
+    tasks:
+      - task_key: load_data
+        max_retries: 0
+        timeout_seconds: 2700 # Set this to 'null' when specifying a continuous task
+        package_name: edp_auto_loader
+        entry_point: run
+        parameters:
+          - "HANA_INIT_AND_DELTA"
+
+
+        #email_notifications:
+        #  # Can also be set to notify "on_start", "on_success" or "on_failure"
+        #  on_duration_warning_threshold_exceeded:
+        #    - GX-SBOBNG-DLT-Team@shell.com
+    tags:
+      - "Area: DBT AUTOLOADER"
+
+    cluster_tags:
+      - name: "Area"
+        value: "DBT AUTOLOADER"
+
+      - name: "Name"
+        value: "HANA INIT AND DELTA"
+
+
+  - name: "Autoloader - HANA Data Loads - Init Only"
+    max_concurrent_runs: 1
+    # email_notifications:
+    #   # Can also be set to notify "on_start", "on_success" or "on_duration_warning_threshold_exceeded"
+    #   on_failure:
+    #     - GX-SBOBNG-DLT-Team@shell.com
+    notification_settings:
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
+    schedule:
+      quartz_cron_expression: "23 15 10 * * ?"
+      timezone_id: "UTC"
+      pause_status: "PAUSED"
+
+    tasks:
+      - task_key: load_data
+        max_retries: 0
+        timeout_seconds: 18000 # Set this to 'null' when specifying a continuous task
+        package_name: edp_auto_loader
+        entry_point: run
+        parameters:
+          - "HANA_INIT"
+
+    tags:
+      - "Area: DBT AUTOLOADER"
+
+    cluster_tags:
+      - name: "Area"
+        value: "DBT AUTOLOADER"
+
+      - name: "Name"
+        value: "HANA INIT ONLY"
+
+
+  - name: "Autoloader - Cluster Data Loads - Init Only"
+    max_concurrent_runs: 1
+    # email_notifications:
+    #   # Can also be set to notify "on_start", "on_success" or "on_duration_warning_threshold_exceeded"
+    #   on_failure:
+    #     - GX-SBOBNG-DLT-Team@shell.com
+    notification_settings:
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
+    schedule:
+      quartz_cron_expression: "23 15 10 * * ?"
+      timezone_id: "UTC"
+      pause_status: "PAUSED"
+
+    tasks:
+      - task_key: load_data
+        max_retries: 0
+        timeout_seconds: 18000 # Set this to 'null' when specifying a continuous task
+        package_name: edp_auto_loader
+        entry_point: run
+        parameters:
+          - "CLUSTER_INIT"
+
+    tags:
+      - "Area: DBT AUTOLOADER"
+
+    cluster_tags:
+      - name: "Area"
+        value: "DBT AUTOLOADER"
+
+      - name: "Name"
+        value: "CLUSTER INIT ONLY"
+
+
+  - name: "Autoloader - BW Data Loads Transactional Data"
+    max_concurrent_runs: 1
+    # email_notifications:
+    #   #Can also be set to notify "on_start", "on_success" or "on_duration_warning_threshold_exceeded"
+    #   on_failure:
+    #    - GX-SBOBNG-DLT-Team@shell.com
+    notification_settings:
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
+    schedule:
+      quartz_cron_expression: "23 15 10 * * ?"
+      timezone_id: "UTC"
+      pause_status: "PAUSED"
+    tasks:
+      - task_key: load_data
+        max_retries: 0
+        timeout_seconds: 3600 # Set this to 'null' when specifying a continuous task
+        package_name: edp_auto_loader
+        entry_point: run
+        parameters:
+          - "BW_TRANSACTIONAL"
+
+    tags:
+      - "Area: DBT AUTOLOADER"
+
+    cluster_tags:
+      - name: "Area"
+        value: "DBT AUTOLOADER"
+
+      - name: "Name"
+        value: "BW DELTA"
+
+  - name: "Autoloader - BW Data Loads Master Data"
+    max_concurrent_runs: 1
+    # email_notifications:
+    #   # Can also be set to notify "on_start", "on_success" or "on_duration_warning_threshold_exceeded"
+    #   #on_failure:
+    #   #  - GX-SBOBNG-DLT-Team@shell.com
+    notification_settings:
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
+    schedule:
+      quartz_cron_expression: "23 15 10 * * ?"
+      timezone_id: "UTC"
+      pause_status: "PAUSED"
+    tasks:
+      - task_key: load_data
+        max_retries: 0
+        timeout_seconds: 1800 # Set this to 'null' when specifying a continuous task
+        package_name: edp_auto_loader
+        entry_point: run
+        parameters:
+          - "BW_MASTER_DATA"
+
+    tags:
+      - "Area: DBT AUTOLOADER"
+
+    cluster_tags:
+      - name: "Area"
+        value: "DBT AUTOLOADER"
+
+      - name: "Name"
+        value: "BW FULL LOAD"
+
+  - name: "Autoloader - AECORSOFT Data Loads - Init and Delta"
+    max_concurrent_runs: 1
+    # email_notifications:
+    #   # Can also be set to notify "on_start", "on_success" or "on_duration_warning_threshold_exceeded"
+    #   on_failure:
+    #     - GX-SBOBNG-DLT-Team@shell.com
+    notification_settings:
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
+    schedule:
+      quartz_cron_expression: "23 15 10 * * ?"
+      timezone_id: "UTC"
+      pause_status: "PAUSED"
+
+    tasks:
+      - task_key: load_data
+        max_retries: 0
+        timeout_seconds: 18000 # Set this to 'null' when specifying a continuous task
+        package_name: edp_auto_loader
+        entry_point: run
+        parameters:
+          - "AECORSOFT_INIT"
+
+    tags:
+      - "Area: DBT AUTOLOADER"
+
+    cluster_tags:
+      - name: "Area"
+        value: "DBT AUTOLOADER"
+
+      - name: "Name"
+        value: "AECORSOFT INIT AND DELTA"
+
+  - name: "Autoloader - AECORSOFT Data Loads - Delta Only"
+    max_concurrent_runs: 1
+    # email_notifications:
+    #   # Can also be set to notify "on_start", "on_success" or "on_duration_warning_threshold_exceeded"
+    #   on_failure:
+    #     - GX-SBOBNG-DLT-Team@shell.com
+    notification_settings:
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
+    schedule:
+      quartz_cron_expression: "23 15 10 * * ?"
+      timezone_id: "UTC"
+      pause_status: "PAUSED"
+
+    tasks:
+      - task_key: load_data
+        max_retries: 0
+        timeout_seconds: 18000 # Set this to 'null' when specifying a continuous task
+        package_name: edp_auto_loader
+        entry_point: run
+        parameters:
+          - "AECORSOFT_DELTA"
+    tags:
+      - "Area: DBT AUTOLOADER"
+
+    cluster_tags:
+      - name: "Area"
+        value: "DBT AUTOLOADER"
+
+      - name: "Name"
+        value: "AECORSOFT DELTA ONLY"
+
+  - name: "Autoloader - Cluster Data Loads - Delta Only"
+    max_concurrent_runs: 1
+    # email_notifications:
+    #   # Can also be set to notify "on_start", "on_success" or "on_duration_warning_threshold_exceeded"
+    #   on_failure:
+    #     - GX-SBOBNG-DLT-Team@shell.com
+    notification_settings:
+      no_alert_for_skipped_runs: true
+      no_alert_for_canceled_runs: true
+    schedule:
+      quartz_cron_expression: "23 15 10 * * ?"
+      timezone_id: "UTC"
+      pause_status: "PAUSED"
+
+    tasks:
+      - task_key: load_data
+        max_retries: 0
+        timeout_seconds: 18000 # Set this to 'null' when specifying a continuous task
+        package_name: edp_auto_loader
+        entry_point: run
+        parameters:
+          - "CLUSTER_DELTA"
+    tags:
+      - "Area: DBT AUTOLOADER"
+
+    cluster_tags:
+      - name: "Area"
+        value: "DBT AUTOLOADER"
+
+      - name: "Name"
+        value: "CLUSTER DELTA ONLY"
+
+  - name: "Terraform - auto_loader job - compulsory parameters"
+    trigger_once_after_deploy: false
+    tasks:
+      - task_key: load_sources
+    tags:
+      - "Area: DBT AUTOLOADER"

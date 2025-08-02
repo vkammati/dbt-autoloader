@@ -1,0 +1,6 @@
+{
+    "hana":"DS_HANA_CDD",
+    "hana_init_and_delta":"DS_HANA_CDD",
+    "aecorsoft":"GSAP_ECC_C94",
+    "bw": "DS_GSAP_BW"
+}
