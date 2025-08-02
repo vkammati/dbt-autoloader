@@ -1,0 +1,88 @@
+name: CI/CD Deployment pipeline
+
+on:
+  release:
+    types: released
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+# This will make sure that when the workflow was triggered by a release, it
+# will receive status 'pending' if another release is already in progress. If
+# the workflow was triggered by another event (push or manual) it will
+# run as long as the git commit is different.
+concurrency: ${{ github.workflow }}-${{ github.event.action == 'released' || github.sha }}
+
+jobs:
+  build:
+    name: Build edp_auto_loader
+    runs-on: ubuntu-latest
+    outputs:
+      build_wheel_version: ${{ steps.build_wheel_version.outputs.version }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.x"
+
+      - name: Install Python dependencies
+        run: pip install build
+
+      - name: Build wheel
+        run: python -m build --wheel
+
+      - name: Output wheel version
+        id: build_wheel_version
+        run: |
+          echo "Grabbing version from wheel"
+          version=$(find ./dist/*.whl | cut -d - -f 2)
+          echo "Wheel version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+        # Publish all artifacts needed during the 'deploy' phase to the pipeline
+        # - ".github/workflows/scripts" <- contains the ci/cd scripts
+        # - "dist" <- contains the wheel that was build in the previous steps
+        # - "terraform" and "config" <- contains the terraform code and env dependent config
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: v${{ steps.build_wheel_version.outputs.version }}
+          path: |
+            .github/workflows/scripts
+            dist
+            terraform
+            config
+
+
+  deploy_to_dev:
+    name: Deploy to dev
+    uses: ./.github/workflows/cd_deploy_wheel_and_terraform.yml
+    with:
+      environment: dev
+      wheel_name: edp_auto_loader
+      build_wheel_version: ${{ needs.build.outputs.build_wheel_version }}
+      nr_of_wheels_to_keep: 4
+      nr_of_days_to_keep_wheel: 15
+    secrets: inherit
+    needs: build
+
+
+  deploy_to_tst:
+    name: Deploy to tst
+    if: github.event_name == 'release' && github.event.action == 'released'
+    uses: ./.github/workflows/cd_deploy_wheel_and_terraform.yml
+    with:
+      environment: tst
+      wheel_name: edp_auto_loader
+      build_wheel_version: ${{ needs.build.outputs.build_wheel_version }}
+      nr_of_wheels_to_keep: 4
+      nr_of_days_to_keep_wheel: 90
+    secrets: inherit
+    needs: [build, deploy_to_dev]
+
+  # Add additional enviroments to deploy to

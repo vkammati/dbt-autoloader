@@ -1,0 +1,123 @@
+name: "CD Deploy wheel and terraform"
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      wheel_name:
+        required: true
+        type: string
+      build_wheel_version:
+        required: true
+        type: string
+      nr_of_wheels_to_keep:
+        required: true
+        type: number
+      nr_of_days_to_keep_wheel:
+        required: true
+        type: number
+      # Optionally, provide a json array with the names of one or more Databricks
+      # Workflows that should be started after the deploy was succesfully completed.
+      # This can also be specified in the job configuration yaml: databricks_dbt_job.yml
+      databricks_workflows_to_start:
+          required: false
+          type: string
+          default: "[]"
+jobs:
+  deploy:
+    name: Deploy wheel and Terraform (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    env:
+      AZURE_TENANT_ID: ${{ secrets.DEPLOY_SPN_TENANT_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.DEPLOY_SPN_CLIENT_ID }}
+      AZURE_CLIENT_CERTIFICATE: ${{ secrets.DEPLOY_SPN_CLIENT_CERTIFICATE }}
+      AZURE_CLIENT_CERTIFICATE_PASSWORD: ${{ secrets.DEPLOY_SPN_CLIENT_CERTIFICATE_PASSWORD }}
+
+      #The next environment variables are all needed to run Terraform
+
+      # The TF_WORKSPACE variable is used in conjuction with what is set as 'prefix' in
+      # the provider.tf to determine the Terraform Cloud Workspace. Its value can also be
+      # used in the Terraform module by using the 'terraform.workspace' variable.
+      TF_WORKSPACE: ${{ inputs.environment }}
+      DATABRICKS_HOST: ${{ vars.DBX_HOST }}
+      TF_VAR_run_spn_tenant_id: ${{ secrets.RUN_SPN_TENANT_ID }}
+      TF_VAR_run_spn_client_id: ${{ secrets.RUN_SPN_CLIENT_ID }}
+      TF_VAR_run_spn_client_secret: ${{ secrets.RUN_SPN_CLIENT_SECRET }}
+      TF_VAR_az_storage_account: ${{ vars.AZ_STORAGE_ACCOUNT }}
+      TF_VAR_dbx_unity_catalog: ${{ vars.DBX_UNITY_CATALOG }}
+      TF_VAR_dbx_raw_schema: ${{ vars.DBX_RAW_SCHEMA }}
+      TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
+      TF_VAR_auto_loader_wheel_version: ${{ inputs.build_wheel_version }}
+
+    steps:
+        #First we deploy the wheel step to the provided environment
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.x"
+
+      - name: Install Python dependencies
+        run: pip install requests packaging azure-identity PyYAML
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: v${{ inputs.build_wheel_version }}
+          path: ./artifacts
+
+      - name: Deploy wheel to Databricks workspace
+        run: |
+          python ./artifacts/.github/workflows/scripts/deploy_new_version.py \
+            --host ${{ vars.DBX_HOST }} \
+            --wheel-name ${{ inputs.wheel_name }} \
+            --source "./artifacts/dist/${{ inputs.wheel_name }}-${{ inputs.build_wheel_version }}-py3-none-any.whl"
+
+      - name: Cleanup Databricks workspace
+        run: |
+          python ./artifacts/.github/workflows/scripts/cleanup_workspace.py \
+            --host ${{ vars.DBX_HOST }} \
+            --wheel-name ${{ inputs.wheel_name }} \
+            --nr-of-wheels-to-keep ${{ inputs.nr_of_wheels_to_keep }} \
+            --nr-of-days-to-keep-wheel ${{ inputs.nr_of_days_to_keep_wheel }}
+
+
+        # Next, terraform is used to create/update workflows and other assets
+      - name: Get Databricks access token for Terraform deploy
+        run: |
+          echo "Getting access token"
+          access_token=$(python ./artifacts/.github/workflows/scripts/get_access_token.py)
+          echo "DATABRICKS_TOKEN=$access_token" >> "$GITHUB_ENV"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.3
+          cli_config_credentials_hostname: app.terraform.io
+          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
+
+      - name: Init
+        run: terraform init
+        working-directory: ./artifacts/terraform
+
+      - name: Plan
+        run: |
+          terraform refresh
+          terraform plan -input=false -lock=false
+        working-directory: ./artifacts/terraform
+
+      - name: Apply
+        run: terraform apply -input=false -auto-approve
+        working-directory: ./artifacts/terraform
+
+        # Finally and optionally, trigger a run for all provided Databricks Workflows.
+        # This can be especially helpful for test runs on non-prod environments.
+      - name: Start Databricks Workflow
+        run: |
+          python ./artifacts/.github/workflows/scripts/start_dbx_workflow.py \
+            --host ${{ vars.DBX_HOST }} \
+            --workflow-names "${{ join(fromJSON(inputs.databricks_workflows_to_start), '" "') }}" \
+            --workflow-definition-yaml-path "./artifacts/config/${{ inputs.environment }}/databricks_job.yml"

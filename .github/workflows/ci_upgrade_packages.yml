@@ -1,0 +1,95 @@
+name: "CI Upgrade python packages"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+# ! change this to prefer to get updates in different time and day
+# ! this is set to run every month on the first day of the month at 00:00
+  schedule:
+      - cron: "0 0 1 * *"
+
+jobs:
+  create_pr_upgrade_packages:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+      with:
+        ref: main
+        fetch-depth: 0
+
+    - name: Set python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12.x"
+
+    - name: Install Python dependencies from requirements.txt and upgrade if needed
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt --upgrade
+
+    - name: Update requirements.txt
+      run: |
+        python utils/upgrade_requirements.py
+
+    - name: Setup GitHub CLI and configure git
+      run: |
+        gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+        # ! Config
+        git config --global user.email "bot.noreply@shell.com"
+        git config --global user.name "EDP Bot"
+
+    - name: PIP packages upgrades PR
+      run: |
+        # ! PR variables
+        pip_files_to_commit="requirements.txt setup.cfg"
+        package_pr_title="Auto: Fix package versions"
+        package_pr_body="Automated PR to fix package versions"
+        update_branch="auto-fix/package-versions"
+
+        # ! Check for changes not staged for commit
+        is_changed=$(git status --porcelain | wc -l)
+        echo "Changed files: $is_changed"
+
+        if [ $is_changed -eq 0 ]; then
+            echo "No changes detected. Skipping PR creation."
+            exit 0
+        fi
+
+        # ! check if there's a PR already open, if so close it
+        echo "Checking if there's a PR already open..."
+        is_pr_open=$(gh pr list --state open | grep "$package_pr_title" || echo "")
+        if [ -n "$is_pr_open" ]; then
+          echo "PR '$package_pr_title' already open, closing it..."
+          gh pr close $update_branch
+        fi
+
+        # ! pre-commit
+        echo "Running pre-commit..."
+        pre-commit run --files $(echo $pip_files_to_commit) || pre-commit run --files $(echo $pip_files_to_commit) || echo "pre-commit failed"
+
+        # ! stash changes
+        git stash save pkg-upgrade
+
+        # ! New branch
+        git switch -C $update_branch
+
+        # ! Apply stash
+        git stash pop stash@{0}
+
+        # ! Add and commit pkg changes
+        git add $pip_files_to_commit
+        git commit -m "Automate changes. Fix package versions"
+
+        # ! Push changes to remote
+        git push origin $update_branch --force
+
+        # ! Create PR using gh cli
+        gh pr create \
+        --base main \
+        --head "$update_branch" \
+        --title "$package_pr_title" \
+        --body "$package_pr_body"

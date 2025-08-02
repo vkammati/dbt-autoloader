@@ -1,0 +1,65 @@
+name: "CI Terraform plan"
+
+on:
+  push:
+    paths:
+      - 'terraform/**'
+      - 'config/**'
+  workflow_dispatch:
+
+jobs:
+  plan:
+    name: Plan Terraform
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      AZURE_TENANT_ID: ${{ secrets.DEPLOY_SPN_TENANT_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.DEPLOY_SPN_CLIENT_ID }}
+      AZURE_CLIENT_CERTIFICATE: ${{ secrets.DEPLOY_SPN_CLIENT_CERTIFICATE }}
+      AZURE_CLIENT_CERTIFICATE_PASSWORD: ${{ secrets.DEPLOY_SPN_CLIENT_CERTIFICATE_PASSWORD }}
+
+      #The next environment variables are all needed to run Terraform
+
+      # The TF_WORKSPACE variable is used in conjuction with what is set as 'prefix' in
+      # the provider.tf to determine the Terraform Cloud Workspace. Its value can also be
+      # used in the Terraform module by using the 'terraform.workspace' variable.
+      TF_WORKSPACE: dev
+      DATABRICKS_HOST: ${{ vars.DBX_HOST }}
+      TF_VAR_run_spn_tenant_id: ${{ secrets.RUN_SPN_TENANT_ID }}
+      TF_VAR_run_spn_client_id: ${{ secrets.RUN_SPN_CLIENT_ID }}
+      TF_VAR_run_spn_client_secret: ${{ secrets.RUN_SPN_CLIENT_SECRET }}
+      TF_VAR_az_storage_account: ${{ vars.AZ_STORAGE_ACCOUNT }}
+      TF_VAR_dbx_unity_catalog: ${{ vars.DBX_UNITY_CATALOG }}
+      TF_VAR_dbx_raw_schema: ${{ vars.DBX_RAW_SCHEMA }}
+      TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
+      TF_VAR_auto_loader_wheel_version: "wheel_placeholder"
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: pip install requests packaging azure-identity PyYAML
+
+      - name: Get Databricks access token for Terraform deploy
+        run: |
+          echo "Getting access token"
+          access_token=$(python .github/workflows/scripts/get_access_token.py)
+          echo "DATABRICKS_TOKEN=$access_token" >> "$GITHUB_ENV"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.3
+          cli_config_credentials_hostname: app.terraform.io
+          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
+
+      - name: Init
+        run: terraform init
+        working-directory: ./terraform
+
+      - name: Plan
+        run: |
+          terraform refresh
+          terraform plan -input=false -lock=false
+        working-directory: ./terraform

@@ -1,0 +1,32 @@
+name: pre-commit
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  pre-commit:
+    name: Run pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.x"
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Install pre-commit hooks
+        run: pre-commit install
+
+      - name: Run pre-commit on PR
+        run: |
+          FILES=$(git diff --name-only ${{ github.event.pull_request.base.ref }} ${{ github.event.pull_request.base.sha }} --diff-filter=d)
+          for FILE in ${FILES}
+          do
+            pre-commit run --files ${FILE}
+          done

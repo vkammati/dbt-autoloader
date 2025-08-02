@@ -1,0 +1,29 @@
+name: "CI Config validation"
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'config/**'
+      - '.github/workflows/ci_config_validation.yml'
+      - '.github/workflows/scripts/validation_schema.py'
+      - '.github/workflows/scripts/validation_schema/**'
+jobs:
+  pre-commit:
+    name: Run config validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.x"
+
+      - name: Install pydantic
+        run: pip install pydantic email-validator PyYAML
+
+      - name: Validate schema of yml's in the ./config/** folder
+        run: python .github/workflows/scripts/config_validation.py
